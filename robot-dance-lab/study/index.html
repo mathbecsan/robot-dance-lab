@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dance perception study</title>
+<style>
+ body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:760px;margin:24px auto;padding:0 16px;color:#222;line-height:1.45}
+ h1{font-size:1.4rem} .card{border:1px solid #ddd;border-radius:10px;padding:16px;margin:14px 0;background:#fafafa}
+ video{width:100%;max-width:480px;display:block;margin:0 auto;border-radius:8px;background:#f4f2ef}
+ .q{margin:14px 0 4px;font-weight:600} .scale{display:flex;justify-content:space-between;gap:4px;margin-bottom:6px}
+ .scale label{flex:1;text-align:center;border:1px solid #ccc;border-radius:6px;padding:8px 0;cursor:pointer;background:#fff}
+ .scale input{display:none} .scale input:checked+span{font-weight:700} .scale label:has(input:checked){background:#1f77b4;color:#fff;border-color:#1f77b4}
+ .ends{display:flex;justify-content:space-between;font-size:.8rem;color:#666} button{padding:10px 18px;border-radius:8px;border:0;background:#1f77b4;color:#fff;font-size:1rem;cursor:pointer}
+ button:disabled{background:#aaa;cursor:not-allowed} .bar{height:6px;background:#e5e5e5;border-radius:3px;margin:8px 0}.bar div{height:6px;background:#1f77b4;border-radius:3px}
+ .warn{background:#fff7e0;border:1px solid #f0d78c;padding:10px;border-radius:8px;font-size:.9rem}
+</style></head><body>
+<div id="app"></div>
+<script>
+const MANIFEST = [{"file": "groove_human_matched.mp4", "song": "groove", "embodiment": "human", "audio": "groove", "condition": "matched"}, {"file": "groove_humanoid_matched.mp4", "song": "groove", "embodiment": "humanoid", "audio": "groove", "condition": "matched"}, {"file": "groove_reduced_matched.mp4", "song": "groove", "embodiment": "reduced", "audio": "groove", "condition": "matched"}, {"file": "groove_arm_matched.mp4", "song": "groove", "embodiment": "arm", "audio": "groove", "condition": "matched"}, {"file": "house_human_matched.mp4", "song": "house", "embodiment": "human", "audio": "house", "condition": "matched"}, {"file": "house_humanoid_matched.mp4", "song": "house", "embodiment": "humanoid", "audio": "house", "condition": "matched"}, {"file": "house_reduced_matched.mp4", "song": "house", "embodiment": "reduced", "audio": "house", "condition": "matched"}, {"file": "house_arm_matched.mp4", "song": "house", "embodiment": "arm", "audio": "house", "condition": "matched"}, {"file": "pop_human_matched.mp4", "song": "pop", "embodiment": "human", "audio": "pop", "condition": "matched"}, {"file": "pop_humanoid_matched.mp4", "song": "pop", "embodiment": "humanoid", "audio": "pop", "condition": "matched"}, {"file": "pop_reduced_matched.mp4", "song": "pop", "embodiment": "reduced", "audio": "pop", "condition": "matched"}, {"file": "pop_arm_matched.mp4", "song": "pop", "embodiment": "arm", "audio": "pop", "condition": "matched"}, {"file": "groove_human_mismatch-house.mp4", "song": "groove", "embodiment": "human", "audio": "house", "condition": "mismatched"}, {"file": "house_humanoid_mismatch-pop.mp4", "song": "house", "embodiment": "humanoid", "audio": "pop", "condition": "mismatched"}, {"file": "pop_reduced_mismatch-groove.mp4", "song": "pop", "embodiment": "reduced", "audio": "groove", "condition": "mismatched"}, {"file": "groove_arm_mismatch-house.mp4", "song": "groove", "embodiment": "arm", "audio": "house", "condition": "mismatched"}];
+const ITEMS = [
+ ['looks_like_dancing','This looks like dancing.'],
+ ['matches_music','The movement matches the music.'],
+ ['human_like','The movement looks human-like.'],
+ ['enjoyable','I enjoyed watching this.']];
+const params = new URLSearchParams(location.search);
+const PID = params.get('pid') || ('p' + Math.random().toString(36).slice(2,8));
+const POST = params.get('post');   // optional: URL that accepts a POST of the CSV text
+const rng = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+// randomise order, but never show the same song twice in a row
+let order = rng(MANIFEST);
+for (let t=0;t<200;t++){ let ok=true; for(let i=1;i<order.length;i++) if(order[i].song===order[i-1].song){ok=false; const j=Math.floor(Math.random()*order.length); [order[i],order[j]]=[order[j],order[i]]; } if(ok)break; }
+const ATTN_AT = 7;  // attention check shown with trial 8
+let k = -1, rows = [], t0 = 0, played = false;
+const app = document.getElementById('app');
+function intro(){ app.innerHTML = `<h1>How does this robot dance look to you?</h1>
+ <div class="card"><p>You will watch <b>${order.length} short clips (8 s each, with sound)</b> of a stick-figure or robot dancing, and rate each on four statements (1 = strongly disagree … 7 = strongly agree). It takes about 10 minutes. Use headphones if you can. There are no right or wrong answers; some clips will not match their music.</p>
+ <p class="warn"><b>Researcher:</b> replace this block with your IRB-approved consent text before collecting data. Participant ID: <code>${PID}</code></p></div>
+ <button onclick="next()">I consent — start</button>`; }
+function next(){ k++; if(k>=order.length) return done(); const c = order[k]; played=false;
+ const items = ITEMS.map(([id,txt],i)=>`<div class="q">${txt}</div><div class="scale">${[1,2,3,4,5,6,7].map(v=>`<label><input type="radio" name="${id}" value="${v}" onchange="chk()"><span>${v}</span></label>`).join('')}</div><div class="ends"><span>strongly disagree</span><span>strongly agree</span></div>`).join('');
+ const attn = (k===ATTN_AT) ? `<div class="q">Attention check: please select <b>2</b> here.</div><div class="scale">${[1,2,3,4,5,6,7].map(v=>`<label><input type="radio" name="attn" value="${v}" onchange="chk()"><span>${v}</span></label>`).join('')}</div>` : '';
+ app.innerHTML = `<div class="bar"><div style="width:${100*k/order.length}%"></div></div><div>Clip ${k+1} of ${order.length}</div>
+ <div class="card"><video id="v" src="stimuli/${c.file}" playsinline controls controlsList="nodownload noplaybackrate" disablePictureInPicture></video>
+ <p style="text-align:center;font-size:.85rem;color:#666">Watch the whole clip (you can replay it).</p></div>
+ <div class="card">${items}${attn}</div><button id="b" disabled onclick="submit()">Next</button>`;
+ const v = document.getElementById('v'); v.addEventListener('ended',()=>{played=true; chk();}); t0=performance.now(); v.play().catch(()=>{}); }
+function chk(){ const all = ITEMS.every(([id])=>document.querySelector(`input[name=${id}]:checked`)) && (k!==ATTN_AT || document.querySelector('input[name=attn]:checked')); document.getElementById('b').disabled = !(all && played); }
+function submit(){ const c = order[k]; const r = {pid:PID, trial:k+1, file:c.file, song:c.song, embodiment:c.embodiment, audio:c.audio, condition:c.condition};
+ ITEMS.forEach(([id])=>r[id]=document.querySelector(`input[name=${id}]:checked`).value);
+ r.attn_pass = (k===ATTN_AT) ? (document.querySelector('input[name=attn]:checked').value==='2' ? 1:0) : ''; r.rt_ms = Math.round(performance.now()-t0); r.ts = new Date().toISOString(); rows.push(r); next(); }
+function csv(){ const h = Object.keys(rows[0]); return [h.join(','), ...rows.map(r=>h.map(x=>r[x]).join(','))].join('\n'); }
+async function done(){ const text = csv(); let msg='';
+ if(POST){ try{ await fetch(POST,{method:'POST',headers:{'Content-Type':'text/csv'},body:text}); msg='<p>Your responses were submitted. Thank you!</p>'; }catch(e){ msg='<p class="warn">Could not reach the server — please download the file below and send it to the researcher.</p>'; } }
+ const blob = new Blob([text],{type:'text/csv'}); const url = URL.createObjectURL(blob);
+ app.innerHTML = `<h1>Thank you!</h1>${msg}<p><a download="${PID}.csv" href="${url}"><button>Download my responses (CSV)</button></a></p>`; }
+intro();
+</script></body></html>

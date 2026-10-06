@@ -1,0 +1,27 @@
+
+=== motors limited to 3 rad/s: curriculum learning (lessons carry parameters forward), 24 trials/lesson ===
+salsa    full humanoid L1 98→98  L2 98→98  L3 99→99  L4 85→96 | learned step 39% lift 61% hip 98% arm 99%
+salsa    reduced       L1 98→98  L2 98→98  L3 99→99  L4 85→96 | learned step 39% lift 61% hip 98% arm 99%
+cumbia   full humanoid L1 100→100  L2 100→100  L3 100→100  L4 99→99 | learned step 100% lift 100% hip 100% arm 100%
+cumbia   reduced       L1 100→100  L2 100→100  L3 100→100  L4 99→99 | learned step 100% lift 100% hip 100% arm 100%
+bachata  full humanoid L1 100→100  L2 99→99  L3 100→100  L4 98→98 | learned step 100% lift 100% hip 100% arm 100%
+bachata  reduced       L1 100→100  L2 99→99  L3 100→100  L4 98→98 | learned step 100% lift 100% hip 100% arm 100%
+
+=== motors limited to 2 rad/s: curriculum learning (lessons carry parameters forward), 24 trials/lesson ===
+salsa    full humanoid L1 95→97  L2 80→94  L3 82→96  L4 80→92 | learned step 24% lift 122% hip 113% arm 101%
+salsa    reduced       L1 95→97  L2 80→95  L3 82→96  L4 80→83 | learned step 86% lift 98% hip 97% arm 100%
+cumbia   full humanoid L1 100→100  L2 99→99  L3 100→100  L4 99→99 | learned step 100% lift 100% hip 100% arm 100%
+cumbia   reduced       L1 100→100  L2 99→99  L3 100→100  L4 99→99 | learned step 100% lift 100% hip 100% arm 100%
+bachata  full humanoid L1 99→99  L2 97→97  L3 98→98  L4 83→96 | learned step 43% lift 97% hip 104% arm 101%
+bachata  reduced       L1 99→99  L2 97→97  L3 98→98  L4 83→96 | learned step 43% lift 97% hip 104% arm 101%
+
+improved 12 / 48 | never worse: true | mean gain when improved 10.3 | max gain 15
+largest gains: salsa/full humanoid/3rad/s/L4: 85→96 (lateness 103→6 ms, fidelity  96%→ 93%)
+               salsa/reduced/3rad/s/L4: 85→96 (lateness 103→6 ms, fidelity  96%→ 93%)
+               salsa/full humanoid/2rad/s/L2: 80→94 (lateness 128→14 ms, fidelity  93%→ 92%)
+               salsa/full humanoid/2rad/s/L3: 82→96 (lateness 128→14 ms, fidelity  96%→ 96%)
+               salsa/full humanoid/2rad/s/L4: 80→92 (lateness 119→19 ms, fidelity  92%→ 89%)
+               salsa/reduced/2rad/s/L2: 80→95 (lateness 131→11 ms, fidelity  93%→ 92%)
+               salsa/reduced/2rad/s/L3: 82→96 (lateness 131→11 ms, fidelity  96%→ 96%)
+               bachata/full humanoid/2rad/s/L4: 83→96 (lateness 114→0 ms, fidelity  93%→ 92%)
+               bachata/reduced/2rad/s/L4: 83→96 (lateness 114→0 ms, fidelity  93%→ 92%)

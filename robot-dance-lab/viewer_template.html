@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Does a robot need a human body to dance like a human?</title>
+<style>
+:root{
+  --paper:#eef1f4; --panel:#f8f9fb; --ink:#17212b; --mute:#5d6b78; --line:#d5dbe1;
+  --human:#2e3338; --humanoid:#2b5fd9; --reduced:#d98a12; --arm:#138a72; --gap:#d6246e;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.45}
+header{max-width:1280px;margin:0 auto;padding:28px 24px 8px}
+h1{font-family:var(--serif);font-weight:600;font-size:clamp(1.5rem,3.2vw,2.3rem);line-height:1.15;margin:0 0 6px;letter-spacing:-.01em;max-width:30ch}
+.lede{color:var(--mute);max-width:70ch;margin:0;font-size:.98rem}
+.bar{max-width:1280px;margin:14px auto 0;padding:0 24px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.songs{display:flex;gap:6px}
+.songs button{font:inherit;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer}
+.songs button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.songs small{color:inherit;opacity:.7;margin-left:6px}
+#play{font:inherit;width:96px;padding:8px 0;border-radius:8px;border:0;background:var(--humanoid);color:#fff;cursor:pointer;font-weight:600}
+#scrub{flex:1;min-width:180px;accent-color:var(--humanoid)}
+#clock{font-variant-numeric:tabular-nums;color:var(--mute);width:92px;text-align:right}
+.toggles{display:flex;gap:16px;color:var(--mute);font-size:.9rem}
+.toggles label{display:flex;gap:6px;align-items:center;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #8fb0ff;outline-offset:2px}
+main{max-width:1280px;margin:14px auto 0;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:980px){main{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){main{grid-template-columns:1fr}}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.col h2{font-family:var(--serif);font-size:1.05rem;font-weight:600;margin:0;padding:12px 14px 0;display:flex;align-items:center;gap:8px}
+.col h2 i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.col .sub{padding:0 14px;color:var(--mute);font-size:.82rem;min-height:2.4em}
+canvas.stage{width:100%;aspect-ratio:1/1.08;display:block;cursor:grab;touch-action:none}
+canvas.score{width:100%;height:96px;display:block;border-top:1px solid var(--line);background:#fff}
+.stats{padding:10px 14px 14px;font-size:.86rem;display:grid;gap:6px;border-top:1px solid var(--line)}
+.stats div{display:flex;justify-content:space-between;gap:10px}
+.stats b{font-variant-numeric:tabular-nums}
+.gaptitle{max-width:1280px;margin:18px auto 0;padding:0 24px;color:var(--mute);font-size:.88rem}
+.gaptitle b{color:var(--gap)}
+section.table,section.about{max-width:1280px;margin:18px auto 0;padding:0 24px}
+section.table .box,section.about .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+h3{font-family:var(--serif);font-size:1.1rem;margin:0 0 8px}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--mute);vertical-align:bottom}
+.note{color:var(--mute);font-size:.84rem;margin:10px 0 0;max-width:90ch}
+details{margin-top:6px} summary{cursor:pointer;font-weight:600}
+footer{max-width:1280px;margin:20px auto 40px;padding:0 24px;color:var(--mute);font-size:.8rem}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend em{width:14px;height:10px;display:inline-block;border-radius:2px}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Does a robot need a human body to dance like a human?</h1>
+  <p class="lede">One dance, four bodies. The same motion is handed to a G1-style humanoid, a cheaper humanoid with fewer joints, and a single robot arm. Each is allowed only what its joints, ranges and speed limits permit. The magenta marks show where the machine could not follow.</p>
+</header>
+
+<div class="bar">
+  <div class="songs" id="songs" role="group" aria-label="Song"></div>
+  <button id="play" aria-label="Play or pause">Play</button>
+  <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Time">
+  <span id="clock">0.0 / 16.0 s</span>
+  <div class="toggles">
+    <label><input type="checkbox" id="tGap" checked> Show where robots fall short</label>
+    <label><input type="checkbox" id="tBal"> Balance dot</label>
+  </div>
+</div>
+
+<main id="cols"></main>
+<p class="gaptitle"><b>Reading the score under each body.</b> Rows are body parts, time runs left to right, the vertical grey lines are the music's beats. Magenta: a joint range or missing joint removed motion the human made. Amber: the speed limit slowed a joint. Drag any figure to turn the camera.</p>
+
+<section class="table"><div class="box">
+  <h3>Across all 15 clips (3 songs × 5 dances)</h3>
+  <table id="pool"></table>
+  <p class="note">Beat alignment is the AIST++ score minus what a random beat grid would get. It rewards simple motion: the reduced humanoid moves less, so it can look better on this number. That is a flaw of the metric, which is why the planned human rating study carries the real answer.</p>
+</div></section>
+
+<section class="about"><div class="box">
+  <h3>What this prototype is, and is not</h3>
+  <details open><summary>Read before quoting any number</summary>
+  <ul class="note" style="padding-left:18px">
+    <li>The dancer is a <b>stand-in</b>: a beat-locked procedural generator, not EDGE. EDGE needs a GPU and downloadable checkpoints, which the build environment did not have. A converter for EDGE's SMPL output is included and round-trip tested; swapping it in changes the human column and everything downstream follows.</li>
+    <li>The humanoid joint ranges are <b>approximations inspired by Unitree G1</b>, not read from its model file. The motion is <b>kinematic</b> (no physics), so "balance dot" is a conservative standing-still test, not a fall prediction.</li>
+    <li>Songs are original synthetic tracks, free to publish. Figures are computed from these clips; the human perception study is built but has not been run.</li>
+  </ul></details>
+  <div class="legend"><span><em style="background:var(--human)"></em>AI human</span><span><em style="background:var(--humanoid)"></em>Full humanoid</span><span><em style="background:var(--reduced)"></em>Reduced humanoid</span><span><em style="background:var(--arm)"></em>Robot arm</span><span><em style="background:var(--gap)"></em>Could not follow</span></div>
+</div></section>
+<footer>Everything on this page runs offline from this single file.</footer>
+
+<script>
+const D = __DATA__;
+const NAMES = {human:'AI human', humanoid:'Full humanoid', reduced:'Reduced humanoid', arm:'Robot arm'};
+const SUBS = {human:'Stand-in for the music-to-dance model; the reference every robot is judged against.',
+  humanoid:'29-joint-style body: waist, shoulders, wrists, hips, ankles. G1-like ranges, 8 rad/s joint speed.',
+  reduced:'Rigid torso and head, no wrists, 1 ankle joint, narrower hips. Same speed limit.',
+  arm:'Right wrist is copied to the arm tip at 1:1. Legs, torso, head and left arm are discarded.'};
+const COL = {human:'#2e3338', humanoid:'#2b5fd9', reduced:'#d98a12', arm:'#138a72'};
+const GAP = '#d6246e', AMB = '#f0a020';
+const GROUPS = [['Head',[3,4]],['Torso',[1,2]],['Left arm',[5,6,7]],['Right arm',[8,9,10]],['Left leg',[11,12,13,14]],['Right leg',[15,16,17,18]]];
+const THICK = {'0,1':11,'1,2':13,'2,3':6,'3,4':4,'2,5':8,'2,8':8,'0,11':9,'0,15':9};
+const ORDER = ['human','humanoid','reduced','arm'];
+let song = 'pop', frame = 0, playing = false, yaw = .55, pitch = .20, T0 = 0;
+const audio = new Audio(); audio.preload = 'auto';
+const cols = document.getElementById('cols');
+const cv = {};
+for (const k of ORDER){
+  const c = document.createElement('div'); c.className = 'col';
+  c.innerHTML = `<h2><i style="background:${COL[k]}"></i>${NAMES[k]}</h2><div class="sub">${SUBS[k]}</div>
+   <canvas class="stage" id="st_${k}" aria-label="${NAMES[k]} dancing"></canvas><canvas class="score" id="sc_${k}"></canvas><div class="stats" id="ss_${k}"></div>`;
+  cols.appendChild(c); cv[k] = {st:c.querySelector('.stage'), sc:c.querySelector('.score'), ss:c.querySelector('.stats')};
+}
+function fit(c, h){ const r = devicePixelRatio||1, b = c.getBoundingClientRect(); const w = Math.round(b.width*r), hh = Math.round((h||b.height)*r); if(c.width!==w||c.height!==hh){c.width=w;c.height=hh;} return r; }
+
+function setSong(s){
+  song = s; const S = D.songs[s]; audio.src = S.audio; frame = 0; stop();
+  document.querySelectorAll('#songs button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.s===s));
+  document.getElementById('scrub').value = 0; stats(); draw();
+}
+const sb = document.getElementById('songs');
+for (const s of Object.keys(D.songs)){ const b = document.createElement('button'); b.dataset.s = s; b.innerHTML = `${s[0].toUpperCase()+s.slice(1)}<small>${Math.round(D.songs[s].tempo)} bpm</small>`; b.onclick = ()=>setSong(s); sb.appendChild(b); }
+
+const nF = ()=>D.songs[song].bodies.human.pos.length/57;
+const P = (k,f)=>{ const b = D.songs[song].bodies[k], n = b.nj*3, o = f*n, a = b.pos, out = []; for(let j=0;j<b.nj;j++) out.push([a[o+j*3]/100,a[o+j*3+1]/100,a[o+j*3+2]/100]); return out; };
+function proj(p, W, H, s){ const x=p[0],y=p[1],z=p[2]; const xr = x*Math.cos(yaw)+z*Math.sin(yaw), zr = -x*Math.sin(yaw)+z*Math.cos(yaw); const yv = y*Math.cos(pitch)-zr*Math.sin(pitch); return [W/2+s*xr, H*.9 - s*yv, zr]; }
+
+function drawStage(k){
+  const c = cv[k].st, r = fit(c), W = c.width, H = c.height, g = c.getContext('2d'); g.clearRect(0,0,W,H);
+  g.fillStyle = '#f1f3f6'; g.fillRect(0,0,W,H);
+  const s = H*.42/1.0*0.92; // px per metre
+  g.lineWidth = 1*r; g.strokeStyle = '#dde2e8';
+  for(let q=-1.2;q<=1.21;q+=.4){ let a=proj([q,0,-1.2],W,H,s), b=proj([q,0,1.2],W,H,s); g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke(); a=proj([-1.2,0,q],W,H,s); b=proj([1.2,0,q],W,H,s); g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke(); }
+  const B = D.songs[song].bodies[k], p = P(k,frame), col = COL[k], sc = B.scale, wantGap = document.getElementById('tGap').checked;
+  const root = k==='arm'?[0,0,0]:[p[0][0],0,p[0][2]]; const sh = proj(root,W,H,s);
+  g.fillStyle='#e0e4e9'; g.beginPath(); g.ellipse(sh[0],sh[1],(.2*sc+.06)*s*.9,(.07*sc+.02)*s*.9,0,0,7); g.fill();
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  if(k==='arm'){
+    const q = p.map(v=>proj(v,W,H,s));
+    g.strokeStyle='#aab1b8'; g.lineWidth=15*r; g.beginPath(); g.moveTo(q[0][0],q[0][1]); g.lineTo(q[1][0],q[1][1]); g.stroke();
+    g.strokeStyle=col; g.lineWidth=13*r; g.beginPath(); g.moveTo(q[1][0],q[1][1]); g.lineTo(q[2][0],q[2][1]); g.stroke();
+    g.lineWidth=10*r; g.beginPath(); g.moveTo(q[2][0],q[2][1]); g.lineTo(q[3][0],q[3][1]); g.stroke();
+    for(const j of [1,2]){ g.fillStyle='#fff'; g.beginPath(); g.arc(q[j][0],q[j][1],8*r,0,7); g.fill(); g.strokeStyle=col; g.lineWidth=2*r; g.stroke(); }
+    g.fillStyle=col; g.beginPath(); g.arc(q[3][0],q[3][1],7*r,0,7); g.fill();
+    if(wantGap && B.reach[frame]){ g.fillStyle=GAP; g.font=`${12*r}px system-ui`; g.fillText('out of reach', 12*r, 24*r); }
+    if(wantGap && ((B.lim[frame]|B.rate[frame])&7)){ g.strokeStyle=(B.lim[frame]&7)?GAP:AMB; g.lineWidth=3*r; for(const j of [1,2]){ g.beginPath(); g.arc(q[j][0],q[j][1],12*r,0,7); g.stroke(); } }
+    return;
+  }
+  const q = p.map(v=>proj(v,W,H,s)); const bones = D.bones.slice().sort((a,b)=>q[b[0]][2]-q[a[0]][2]);
+  for(const [a,b] of bones){ g.strokeStyle=col; g.lineWidth=(THICK[a+','+b]||6)*(.85+.25*sc)*r*(H/600+.35); g.beginPath(); g.moveTo(q[a][0],q[a][1]); g.lineTo(q[b][0],q[b][1]); g.stroke(); }
+  g.fillStyle=col; g.beginPath(); g.arc(q[4][0], q[4][1]-.07*s*sc, .095*s*sc, 0, 7); g.fill();
+  if(k!=='human'){ for(let j=0;j<q.length;j++){ if(j===14||j===18||j===4) continue; g.fillStyle='#fff'; g.beginPath(); g.arc(q[j][0],q[j][1],4.2*r,0,7); g.fill(); g.strokeStyle=col; g.lineWidth=1.2*r; g.stroke(); } }
+  if(wantGap && B.lim){ for(let j=1;j<q.length;j++){ const L=(B.lim[frame]>>j)&1, Rr=(B.rate[frame]>>j)&1; if(L||Rr){ g.strokeStyle=L?GAP:AMB; g.lineWidth=(L?3:2)*r; g.beginPath(); g.arc(q[j][0],q[j][1],(L?10:9)*r,0,7); g.stroke(); } } }
+  if(document.getElementById('tBal').checked && B.bal){ const cm = com(p); const c2 = proj([cm[0],0,cm[2]],W,H,s); g.fillStyle = B.bal[frame]?'#2e9e5b':GAP; g.beginPath(); g.arc(c2[0],c2[1],6*r,0,7); g.fill(); }
+}
+const SEG = [[0,1,.12],[1,2,.12],[2,3,.18],[3,4,.03],[4,4,.05],[5,6,.028],[6,7,.022],[7,7,.008],[8,9,.028],[9,10,.022],[10,10,.008],[11,12,.1],[12,13,.047],[13,14,.015],[15,16,.1],[16,17,.047],[17,18,.015]];
+function com(p){ let x=0,y=0,z=0,m=0; for(const [a,b,w] of SEG){ x+=w*.5*(p[a][0]+p[b][0]); y+=w*.5*(p[a][1]+p[b][1]); z+=w*.5*(p[a][2]+p[b][2]); m+=w; } return [x/m,y/m,z/m]; }
+
+function drawScore(k){
+  const c = cv[k].sc, r = fit(c, 96), W = c.width, H = c.height, g = c.getContext('2d'), S = D.songs[song], B = S.bodies[k], n = nF(), dur = n/S.fps;
+  g.fillStyle='#fff'; g.fillRect(0,0,W,H);
+  const left = 54*r, right = 6*r, top = 6*r, bottom = 6*r, w = W-left-right;
+  const rows = k==='arm' ? [['Arm joints',[0,1,2]]] : GROUPS; const rh = (H-top-bottom)/rows.length;
+  g.strokeStyle='#e4e8ec'; g.lineWidth=1*r; for(const bt of S.beats){ const x = left + w*bt/dur; g.beginPath(); g.moveTo(x,top); g.lineTo(x,H-bottom); g.stroke(); }
+  g.font = `${10.5*r}px system-ui`; g.textBaseline='middle';
+  rows.forEach(([nm,js],i)=>{
+    g.fillStyle='#5d6b78'; g.textAlign='left'; g.fillText(nm, 4*r, top+rh*(i+.5));
+    if(k==='human'){ return; }
+    const cw = Math.max(1, w/n+.6);
+    for(let f=0; f<n; f++){
+      let L=false,Rr=false; for(const j of js){ if((B.lim[f]>>j)&1) L=true; if((B.rate[f]>>j)&1) Rr=true; }
+      if(k==='arm' && B.reach[f]) L=true;
+      if(L||Rr){ g.fillStyle = L?GAP:AMB; g.fillRect(left + w*f/n, top+rh*i+1.5*r, cw, rh-3*r); }
+    }
+  });
+  if(k==='human'){ g.fillStyle='#8b97a3'; g.textAlign='left'; g.textBaseline='middle'; g.font=`${11.5*r}px system-ui`; g.fillText('The reference: nothing is removed.', left, H/2); }
+  const px = left + w*frame/n; g.strokeStyle='#17212b'; g.lineWidth=2*r; g.beginPath(); g.moveTo(px,0); g.lineTo(px,H); g.stroke();
+}
+function pct(x){ return (100*x).toFixed(0)+'%'; }
+function stats(){
+  const M = D.songs[song].metrics, f2 = x=>x.toFixed(3);
+  const row = (a,b)=>`<div><span>${a}</span><b>${b}</b></div>`;
+  cv.human.ss.innerHTML = row('Beat alignment above chance', '+'+f2(M.human.bas_lift)) + row('Frames that pass a standing-balance test', pct(1-M.human.unstable_frac)) + row('Joint-angle motion', '100%');
+  for(const k of ['humanoid','reduced']) cv[k].ss.innerHTML = row('Frames with lost motion', pct(M[k].limit_frames)) + row('Right-wrist path error', f2(M[k].rwrist_dtw)) + row('Joint-angle motion kept', pct(M[k].energy_retained)) + row('Beat alignment above chance', '+'+f2(M[k].bas_lift));
+  cv.arm.ss.innerHTML = row('Right-wrist path error', f2(M.arm.rwrist_dtw)) + row('Frames out of reach', pct(M.arm.reach_loss_frac)) + row('Frames at a joint limit', pct(M.arm.limit_frames)) + row('Body motion carried over', 'wrist only');
+}
+function pool(){
+  const p = D.pooled, f3=x=>x==null?'–':x.toFixed(3), pc=x=>x==null?'–':(100*x).toFixed(0)+'%';
+  let h = '<tr><th></th><th>Beat alignment<br>above chance</th><th>Right-wrist<br>path error</th><th>Whole-pose<br>path error</th><th>Frames with<br>lost motion</th><th>Joint-angle<br>motion kept</th></tr>';
+  for(const k of ORDER) h += `<tr><td>${NAMES[k]}</td><td>${f3(p[k].bas_lift)}</td><td>${f3(p[k].rwrist_dtw)}</td><td>${f3(p[k].pose_dtw)}</td><td>${pc(p[k].limit_frames)}</td><td>${pc(p[k].energy_retained)}</td></tr>`;
+  document.getElementById('pool').innerHTML = h;
+}
+function draw(){ for(const k of ORDER){ drawStage(k); drawScore(k); } const n = nF(), fps = D.songs[song].fps; document.getElementById('clock').textContent = (frame/fps).toFixed(1)+' / '+(n/fps).toFixed(1)+' s'; }
+function play(){ if(frame>=nF()-1){frame=0;audio.currentTime=0;} audio.currentTime = frame/D.songs[song].fps; audio.play().catch(()=>{}); playing=true; document.getElementById('play').textContent='Pause'; requestAnimationFrame(tick); }
+function stop(){ audio.pause(); playing=false; document.getElementById('play').textContent='Play'; }
+function tick(){ if(!playing) return; const fps = D.songs[song].fps; frame = Math.min(nF()-1, Math.floor(audio.currentTime*fps)); document.getElementById('scrub').value = 1000*frame/(nF()-1); draw(); if(audio.ended || frame>=nF()-1){ stop(); return; } requestAnimationFrame(tick); }
+document.getElementById('play').onclick = ()=>playing?stop():play();
+document.getElementById('scrub').oninput = e=>{ frame = Math.round(e.target.value/1000*(nF()-1)); audio.currentTime = frame/D.songs[song].fps; draw(); };
+document.getElementById('tGap').onchange = draw; document.getElementById('tBal').onchange = draw;
+let drag=null; for(const k of ORDER){ const c = cv[k].st; c.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY,yaw,pitch]; c.setPointerCapture(e.pointerId); c.style.cursor='grabbing';}); c.addEventListener('pointermove',e=>{ if(!drag) return; yaw = drag[2]+(e.clientX-drag[0])*.008; pitch = Math.max(-.2,Math.min(.9,drag[3]+(e.clientY-drag[1])*.006)); draw(); }); c.addEventListener('pointerup',()=>{drag=null;c.style.cursor='grab';}); c.addEventListener('dblclick',()=>{yaw=.55;pitch=.2;draw();}); }
+addEventListener('resize', draw); document.addEventListener('keydown',e=>{ if(e.code==='Space' && e.target.tagName!=='INPUT'){ e.preventDefault(); playing?stop():play(); } });
+pool(); setSong('pop');
+</script>
+</body></html>

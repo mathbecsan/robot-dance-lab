@@ -1,0 +1,8 @@
+numpy
+scipy
+pandas
+matplotlib
+librosa
+soundfile
+statsmodels
+opencv-python

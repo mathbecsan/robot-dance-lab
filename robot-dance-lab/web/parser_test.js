@@ -1,0 +1,13 @@
+const E = require('./engine.js'); let bad = 0;
+const t = (prompt, expect) => { const P = E.parsePrompt(prompt), got = P.phrases.map(p => p.leg + '+' + p.arm).join(' | '); const ok = got === expect; if (!ok) bad++; console.log((ok ? 'PASS ' : 'FAIL ') + JSON.stringify(prompt) + '\n       -> ' + got + (ok ? '' : '   (expected ' + expect + ')')); };
+t('kick high, then hands up and twist, finish with deep squats', 'kick+none | bounce+arms_up | bounce+torso_twist | squat_pulse+none');
+t('wild step-touch with arm pumps twice', 'step_touch+arm_pump | step_touch+arm_pump');
+t('lean back and kick', 'kick+lean_back');
+t('hands in the air', 'bounce+arms_up');
+t('slow sway with waving arms, then head bang', 'sway+arm_wave | bounce+head_bang');
+t('salsa, then salsa side basic, then bachata, then cumbia', 'salsa_basic+salsa_arms | salsa_side+salsa_arms | bachata_basic+bachata_arms | cumbia_basic+cumbia_arms');
+t('bachata with a head bang', 'bachata_basic+head_bang');
+t('salsa step', 'salsa_basic+salsa_arms');
+const u = E.parsePrompt('moonwalk then squat'); const ok = u.unknown.length === 1 && u.unknown[0] === 'moonwalk' && u.phrases.length === 1; if (!ok) bad++; console.log((ok ? 'PASS ' : 'FAIL ') + 'unknown words reported: ' + JSON.stringify(u.unknown));
+const e = E.parsePrompt('wild kick'); const ok2 = e.phrases[0].e === 1 && E.parsePrompt('gentle sway').phrases[0].e === .3; if (!ok2) bad++; console.log((ok2 ? 'PASS ' : 'FAIL ') + 'energy words');
+process.exit(bad ? 1 : 0);

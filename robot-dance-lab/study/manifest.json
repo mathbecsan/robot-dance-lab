@@ -1,0 +1,114 @@
+[
+ {
+  "file": "groove_human_matched.mp4",
+  "song": "groove",
+  "embodiment": "human",
+  "audio": "groove",
+  "condition": "matched"
+ },
+ {
+  "file": "groove_humanoid_matched.mp4",
+  "song": "groove",
+  "embodiment": "humanoid",
+  "audio": "groove",
+  "condition": "matched"
+ },
+ {
+  "file": "groove_reduced_matched.mp4",
+  "song": "groove",
+  "embodiment": "reduced",
+  "audio": "groove",
+  "condition": "matched"
+ },
+ {
+  "file": "groove_arm_matched.mp4",
+  "song": "groove",
+  "embodiment": "arm",
+  "audio": "groove",
+  "condition": "matched"
+ },
+ {
+  "file": "house_human_matched.mp4",
+  "song": "house",
+  "embodiment": "human",
+  "audio": "house",
+  "condition": "matched"
+ },
+ {
+  "file": "house_humanoid_matched.mp4",
+  "song": "house",
+  "embodiment": "humanoid",
+  "audio": "house",
+  "condition": "matched"
+ },
+ {
+  "file": "house_reduced_matched.mp4",
+  "song": "house",
+  "embodiment": "reduced",
+  "audio": "house",
+  "condition": "matched"
+ },
+ {
+  "file": "house_arm_matched.mp4",
+  "song": "house",
+  "embodiment": "arm",
+  "audio": "house",
+  "condition": "matched"
+ },
+ {
+  "file": "pop_human_matched.mp4",
+  "song": "pop",
+  "embodiment": "human",
+  "audio": "pop",
+  "condition": "matched"
+ },
+ {
+  "file": "pop_humanoid_matched.mp4",
+  "song": "pop",
+  "embodiment": "humanoid",
+  "audio": "pop",
+  "condition": "matched"
+ },
+ {
+  "file": "pop_reduced_matched.mp4",
+  "song": "pop",
+  "embodiment": "reduced",
+  "audio": "pop",
+  "condition": "matched"
+ },
+ {
+  "file": "pop_arm_matched.mp4",
+  "song": "pop",
+  "embodiment": "arm",
+  "audio": "pop",
+  "condition": "matched"
+ },
+ {
+  "file": "groove_human_mismatch-house.mp4",
+  "song": "groove",
+  "embodiment": "human",
+  "audio": "house",
+  "condition": "mismatched"
+ },
+ {
+  "file": "house_humanoid_mismatch-pop.mp4",
+  "song": "house",
+  "embodiment": "humanoid",
+  "audio": "pop",
+  "condition": "mismatched"
+ },
+ {
+  "file": "pop_reduced_mismatch-groove.mp4",
+  "song": "pop",
+  "embodiment": "reduced",
+  "audio": "groove",
+  "condition": "mismatched"
+ },
+ {
+  "file": "groove_arm_mismatch-house.mp4",
+  "song": "groove",
+  "embodiment": "arm",
+  "audio": "house",
+  "condition": "mismatched"
+ }
+]

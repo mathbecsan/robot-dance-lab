@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Robot Dance Lab</title>
+<style>
+:root{
+  --bg:#0c1421; --panel:#131f31; --panel2:#192a42; --line:#27405f; --ink:#e8edf4; --mute:#93a4ba; --dim:#62768f;
+  --human:#dfe5ec; --humanoid:#5b8cff; --reduced:#ffb02e; --arm:#2fd1a8; --custom:#c58bff; --gap:#ff3d8b; --ok:#3ddc97;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.45;-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #8fb0ff;outline-offset:2px}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:18px;padding:10px 20px;background:rgba(12,20,33,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--serif);font-size:1.25rem;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand i{width:22px;height:22px;border-radius:6px;background:conic-gradient(from 200deg,var(--humanoid),var(--arm),var(--reduced),var(--humanoid));display:inline-block}
+nav{display:flex;gap:4px;flex:1;overflow-x:auto}
+nav button{border:0;background:none;color:var(--mute);padding:8px 14px;border-radius:8px;white-space:nowrap}
+nav button[aria-selected=true]{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--humanoid)}
+#xp{color:var(--mute);font-size:.88rem;white-space:nowrap}
+#xp b{color:var(--ink)}
+.tab{display:none;padding:16px 20px 40px;max-width:1500px;margin:0 auto}
+.tab.on{display:block}
+.grid{display:grid;grid-template-columns:330px minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media(max-width:1180px){.grid{grid-template-columns:minmax(0,1fr) 300px}.grid>.left{grid-column:1/-1;order:3}}
+@media(max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}.grid>.right{order:2}.grid>.mid{order:1}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.card h2,.card h3{font-family:var(--serif);font-weight:600;margin:0 0 8px;font-size:1.08rem}
+.muted{color:var(--mute)} .small{font-size:.84rem}
+textarea{width:100%;min-height:92px;resize:vertical;background:#0b1320;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);line-height:1.4}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--panel2);padding:8px 14px;border-radius:9px;color:var(--ink)}
+.btn.primary{background:var(--humanoid);border-color:var(--humanoid);color:#fff;font-weight:600}
+.btn:hover{filter:brightness(1.12)} .btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{border:1px solid var(--line);background:transparent;color:var(--mute);padding:5px 10px;border-radius:999px;font-size:.82rem;text-align:left}
+.chip:hover{color:var(--ink);border-color:var(--dim)}
+.phr{display:flex;gap:8px;align-items:baseline;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
+.phr b{color:var(--ink);font-weight:600} .phr span.n{color:var(--dim);width:3.2em;flex:none;font-variant-numeric:tabular-nums}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:transparent;color:var(--mute);padding:7px 12px;border-radius:999px;display:flex;gap:7px;align-items:center}
+.seg button[aria-pressed=true]{color:var(--ink);background:var(--panel2);border-color:var(--dim)}
+.seg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.stagewrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#0b1320}
+canvas{display:block;width:100%}
+#stage{aspect-ratio:16/10}
+.transport{display:flex;gap:10px;align-items:center;padding:8px 4px}
+.transport input[type=range]{flex:1;accent-color:var(--humanoid)}
+.play{width:92px;border:0;background:var(--humanoid);color:#fff;border-radius:9px;padding:8px 0;font-weight:600}
+.clock{font-variant-numeric:tabular-nums;color:var(--mute);width:84px;text-align:right;font-size:.88rem}
+.opts{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--mute);font-size:.86rem;padding:2px 4px 8px}
+.opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.score{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.score .big{font-family:var(--serif);font-size:3rem;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.stars{letter-spacing:3px;color:var(--reduced);font-size:1.2rem}
+.meter{margin:9px 0}
+.meter .l{display:flex;justify-content:space-between;font-size:.84rem;color:var(--mute)} .meter .l b{color:var(--ink);font-variant-numeric:tabular-nums}
+.meter .t{height:7px;border-radius:4px;background:#0b1320;margin-top:4px;overflow:hidden}
+.meter .t div{height:100%;border-radius:4px;background:var(--humanoid);transition:width .35s}
+.coach{border-left:3px solid var(--humanoid);padding:2px 0 2px 12px;margin:12px 0 4px}
+.why{width:100%;text-align:left;background:#0e1a2b;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:6px 0;color:var(--ink);font-size:.86rem}
+.why:hover,.why[aria-pressed=true]{border-color:var(--gap)}
+.why b{color:var(--gap)} .why .tag{color:var(--dim);font-size:.78rem}
+.mission{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.88rem}
+.mission:last-child{border:0}
+.mission .ck{width:22px;height:22px;border-radius:50%;border:2px solid var(--dim);flex:none;display:grid;place-items:center;font-size:.8rem;color:transparent;margin-top:2px}
+.mission.done .ck{background:var(--ok);border-color:var(--ok);color:#06231a}
+.mission b{display:block}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);background:var(--ok);color:#06231a;padding:10px 18px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:.35s;z-index:40;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.banner{background:linear-gradient(90deg,#16304f,#142a44);border:1px solid #2c5788;border-radius:12px;padding:10px 14px;margin-bottom:14px;display:flex;gap:14px;align-items:center;justify-content:space-between;font-size:.9rem}
+.banner ol{margin:0;padding-left:18px} .banner button{background:none;border:0;color:var(--mute);font-size:1.2rem}
+.insp{display:grid;grid-template-columns:1fr;gap:6px}
+canvas.insp{height:150px;border-radius:10px;background:#0b1320;border:1px solid var(--line)}
+canvas.strip{height:104px;border-radius:10px;background:#0b1320;border:1px solid var(--line)}
+.tabs2{display:flex;gap:6px;flex-wrap:wrap}
+.tabs2 button{border:1px solid var(--line);background:transparent;color:var(--mute);border-radius:8px;padding:4px 10px;font-size:.82rem}
+.tabs2 button[aria-pressed=true]{color:var(--ink);background:var(--panel2)}
+/* counts + school */
+.counts{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;margin:8px 0 2px}
+.counts div{padding:6px 2px;text-align:center;border:1px solid var(--line);border-radius:8px;font-size:.74rem;color:var(--mute);line-height:1.2;min-height:34px;display:grid;place-items:center;transition:background .08s}
+.counts div.on{background:var(--panel2);color:var(--ink);border-color:var(--humanoid);box-shadow:0 0 0 1px var(--humanoid) inset}
+.lesson{width:100%;text-align:left;background:#0e1a2b;border:1px solid var(--line);border-radius:10px;padding:9px 11px;margin:6px 0;display:flex;gap:10px;align-items:center}
+.lesson[aria-pressed=true]{border-color:var(--humanoid)} .lesson .n{width:26px;height:26px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--serif);font-weight:600;flex:none}
+.lesson.done .n{background:var(--ok);color:#06231a} .lesson .r{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--mute);font-size:.85rem;white-space:nowrap}
+.prm{display:grid;grid-template-columns:96px 1fr 84px;gap:8px;align-items:center;font-size:.84rem;margin:6px 0}
+.prm .bar{height:8px;background:#0b1320;border-radius:5px;position:relative;overflow:hidden} .prm .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.prm b{text-align:right;font-variant-numeric:tabular-nums}
+canvas.curve{height:140px;border-radius:10px;background:#0b1320;border:1px solid var(--line)}
+.cmp{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.84rem;margin:4px 0} .cmp b{font-variant-numeric:tabular-nums;text-align:right}
+/* workshop */
+.wgrid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.wgrid{grid-template-columns:minmax(0,1fr)}}
+.grp{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+.grp input{margin-top:5px;accent-color:var(--humanoid)} .grp .c{margin-left:auto;color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+.grp b{font-weight:600} .grp div div{font-size:.8rem;color:var(--dim)}
+.budget{height:12px;border-radius:7px;background:#0b1320;overflow:hidden;margin:8px 0}
+.budget div{height:100%;background:var(--humanoid);transition:width .25s,background .25s}
+.budget.over div{background:var(--gap)}
+canvas.front{aspect-ratio:16/8;border-radius:10px;background:#0b1320;border:1px solid var(--line)}
+/* listen */
+.lgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+@media(max-width:900px){.lgrid{grid-template-columns:1fr}}
+#lstage{aspect-ratio:1/1;max-height:560px}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.ans button{padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font-weight:600}
+.ans button:hover{border-color:var(--humanoid)}
+/* learn */
+.learn{max-width:900px;margin:0 auto}
+.learn h1{font-family:var(--serif);font-size:clamp(1.6rem,3.6vw,2.4rem);line-height:1.15;margin:8px 0 8px;font-weight:600;letter-spacing:-.01em}
+.learn p,.learn li{max-width:72ch}
+.learn table{border-collapse:collapse;width:100%;font-size:.88rem}
+.learn th,.learn td{text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.learn th:first-child,.learn td:first-child{text-align:left} .learn th{color:var(--mute);font-weight:600}
+.step{display:grid;grid-template-columns:44px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border:0} .step .n{width:34px;height:34px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--serif);font-weight:600}
+dl{margin:0} dt{font-weight:600;margin-top:10px} dd{margin:2px 0 0;color:var(--mute);max-width:70ch}
+.legendrow{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--mute)} .legendrow span{display:flex;gap:6px;align-items:center}.legendrow em{width:12px;height:12px;border-radius:50%;display:inline-block}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><i></i>Robot Dance Lab</div>
+  <nav role="tablist" aria-label="Sections" id="nav">
+    <button role="tab" data-tab="studio" aria-selected="true">Studio</button>
+    <button role="tab" data-tab="school" aria-selected="false">Dance school</button>
+    <button role="tab" data-tab="workshop" aria-selected="false">Workshop</button>
+    <button role="tab" data-tab="listen" aria-selected="false">Listening test</button>
+    <button role="tab" data-tab="learn" aria-selected="false">The study</button>
+  </nav>
+  <button id="snd" class="btn" style="padding:5px 12px" aria-label="Toggle sound">Sound on</button><div id="xp"></div>
+</header>
+
+<!-- ================================================= STUDIO -->
+<section class="tab on" id="tab-studio" role="tabpanel">
+ <div class="banner" id="tour"><ol><li><b>Describe a dance</b> in plain words and press Choreograph.</li><li>Watch four different bodies try to perform it.</li><li>Click a <b style="color:var(--gap)">magenta ring</b> to find out why a robot could not follow.</li></ol><button id="tourX" aria-label="Dismiss">×</button></div>
+ <div class="grid">
+  <div class="left">
+    <div class="card"><h2>Direct the dance</h2>
+      <textarea id="prompt" aria-label="Dance description" placeholder="e.g. kick high, then hands up and twist, finish with deep squats"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="go">Choreograph</button><button class="btn" id="surprise">Surprise me</button></div>
+      <div class="row" style="margin-top:10px" id="examples"></div>
+      <div id="heard" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><h3>Song and motors</h3>
+      <div class="seg" id="songs" role="group" aria-label="Song"></div>
+      <div style="margin-top:12px"><label class="small muted" for="speed">Motor speed limit: <b id="speedv" style="color:var(--ink)">8 rad/s</b></label>
+        <input id="speed" type="range" min="2" max="20" step="1" value="8" style="width:100%;accent-color:var(--reduced)">
+        <div class="small muted">Applies to the full, reduced and arm robots. “Your robot” keeps the motors you chose in the Workshop.</div></div>
+    </div>
+    <div class="card"><h3>Missions</h3><div id="missions"></div></div>
+  </div>
+
+  <div class="mid">
+    <div class="seg" id="bodies" role="group" aria-label="Robot body" style="margin-bottom:10px"></div>
+    <div class="stagewrap"><canvas id="stage" aria-label="Dance stage: human on the left, selected robot on the right"></canvas></div>
+    <div class="counts" id="counts" hidden aria-label="Dance counts"></div>
+    <div class="transport"><button class="play" id="play">Play</button><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Time"><span class="clock" id="clock">0.0 / 32.0 s</span></div>
+    <div class="opts">
+      <label><input type="checkbox" id="oGhost" checked> Ghost: the pose it was asked for</label>
+      <label><input type="checkbox" id="oHits" checked> Show limit hits</label>
+      <label><input type="checkbox" id="oBal"> Balance dot</label>
+      <label><input type="checkbox" id="oCam" checked> Moving camera</label>
+    </div>
+    <div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Joint inspector</h3><div class="tabs2" id="axtabs"></div></div>
+      <div class="small muted" id="inspTitle" style="margin:6px 0">Click a joint on the robot, or pick a row on the right.</div>
+      <canvas class="insp" id="insp"></canvas>
+      <div class="small muted" style="margin:10px 0 4px">Where the robot could not follow, over time. Rows are body parts, grey lines are the music’s beats.</div>
+      <canvas class="strip" id="strip"></canvas>
+      <div class="legendrow" style="margin-top:8px"><span><em style="background:var(--gap)"></em>joint range or missing joint</span><span><em style="background:var(--reduced)"></em>motor too slow</span></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card" aria-live="polite">
+      <h3 id="scTitle">Full humanoid</h3>
+      <div class="score"><span class="big" id="scBig">–</span><span class="stars" id="scStars"></span></div>
+      <div id="meters"></div>
+      <div class="coach" id="coach"></div>
+    </div>
+    <div class="card"><h3>What held it back</h3><div id="whys"></div></div>
+  </div>
+ </div>
+</section>
+
+
+<!-- ================================================= SCHOOL -->
+<section class="tab" id="tab-school" role="tabpanel">
+ <div class="banner"><div><b>Teach a robot to dance salsa, cumbia or bachata.</b> The teacher (white) dances the lesson. The student robot first tries it exactly as shown (“before”). Then it practises: it tries small changes to its own step length, foot lift, hip movement and arm height, keeps whatever scores better, and you can watch it improve.</div></div>
+ <div class="grid">
+  <div class="left">
+    <div class="card"><h2>Pick a style</h2><div class="seg" id="sStyles" role="group" aria-label="Dance style"></div><p id="sAbout" class="small muted" style="margin:10px 0 4px"></p></div>
+    <div class="card"><h3>The student</h3><div class="seg" id="sBodies" role="group" aria-label="Student robot"></div>
+      <label class="small muted" for="sSpeed" style="margin-top:12px;display:block">Motor speed limit: <b id="sSpeedV" style="color:var(--ink)">3 rad/s</b></label>
+      <input id="sSpeed" type="range" min="2" max="12" step="1" value="3" style="width:100%;accent-color:var(--reduced)">
+      <div class="small muted">At 8 rad/s or more these basic steps need almost no learning. Slow the motors down and watch it adapt.</div></div>
+    <div class="card"><h3>Lessons</h3><div id="sLessons"></div><div class="row" style="margin-top:8px"><button class="btn" id="sReset">Forget everything</button></div></div>
+  </div>
+  <div class="mid">
+    <div class="stagewrap"><canvas id="sstage" aria-label="Teacher, student before learning, student after learning"></canvas></div>
+    <div class="counts" id="sCounts" aria-label="Dance counts"></div>
+    <div class="transport"><button class="play" id="splay">Play</button><input type="range" id="sscrub" min="0" max="1000" value="0" aria-label="Time"><span class="clock" id="sclock">0.0 s</span></div>
+    <div class="small muted" id="sNote" style="padding:0 4px"></div>
+  </div>
+  <div class="right">
+    <div class="card" aria-live="polite"><h3 id="sTitle">Lesson 1</h3>
+      <div class="row" style="align-items:center;gap:14px"><button class="btn primary" id="sTrain">Train the robot</button><span class="small muted" id="sStatus"></span></div>
+      <div class="score" style="margin-top:12px"><span class="big" id="sBefore" style="color:var(--dim)">–</span><span class="muted">→</span><span class="big" id="sAfter">–</span><span class="stars" id="sStars"></span></div>
+      <div id="sCmp"></div>
+      <canvas class="curve" id="sCurve" style="margin-top:10px"></canvas>
+      <div class="small muted">Score after each practice trial. It only keeps a change if the score goes up, so the line never drops.</div>
+      <div id="sPrm" style="margin-top:10px"></div>
+      <div class="coach" id="sLearned"></div>
+    </div>
+    <div class="card"><h3>Report card</h3><div id="sReport" class="small"></div></div>
+  </div>
+ </div>
+</section>
+
+<!-- ================================================= WORKSHOP -->
+<section class="tab" id="tab-workshop" role="tabpanel">
+ <div class="wgrid">
+  <div>
+   <div class="card"><h2>Build a robot</h2>
+     <p class="muted small" style="margin-top:0">Every joint costs points. You have <b style="color:var(--ink)">12</b>. Your robot must perform a fixed audition (kick and arms overhead, step-touch with a twist, squat pulse with arm waves, hip sway with head banging) as faithfully as it can.</p>
+     <div class="row"><button class="btn" data-preset="blank">Blank</button><button class="btn" data-preset="cheap">Kid-size</button><button class="btn" data-preset="g1">G1-style (all joints)</button></div>
+     <div id="groups" style="margin-top:6px"></div>
+     <div class="grp"><label style="flex:1"><input type="checkbox" id="wide"> <b>Extra-wide shoulder raise</b><div>Lets the arm go fully overhead (+1 point, needs shoulder raise)</div></label><span class="c">+1</span></div>
+     <div style="margin-top:10px"><b>Motors</b><div id="motors" class="seg" style="margin-top:6px"></div></div>
+   </div>
+  </div>
+  <div>
+   <div class="card">
+     <div class="row" style="justify-content:space-between;align-items:center"><div><div class="muted small">Points used</div><div class="budget" id="budget" style="width:260px"><div></div></div></div>
+       <div class="row"><b id="wcost">0 / 12</b></div></div>
+     <div class="stagewrap"><canvas id="wstage" style="aspect-ratio:16/8" aria-label="Audition stage"></canvas></div>
+     <div class="transport"><button class="play" id="wplay">Play</button><input type="range" id="wscrub" min="0" max="1000" value="0" aria-label="Time"><span class="clock" id="wclock">0.0 s</span></div>
+     <div class="row" style="justify-content:space-between"><div><div class="score"><span class="big" id="wfid">–</span><span class="muted">visible fidelity on the audition</span></div><div id="wverdict" class="small muted"></div></div>
+     <div><button class="btn primary" id="wreveal">Show the best possible build</button></div></div>
+   </div>
+   <div class="card"><h3>Cost versus fidelity</h3>
+     <canvas class="front" id="front"></canvas>
+     <p class="small muted" style="margin-bottom:0" id="fnote">The curve is the best score any build can reach at each price (all 18,432 builds were tried). The more joints you add, the less each one buys you.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- ================================================= LISTEN -->
+<section class="tab" id="tab-listen" role="tabpanel">
+ <div class="lgrid">
+  <div>
+   <div class="stagewrap"><canvas id="lstage" aria-label="A dancing figure"></canvas></div>
+   <div class="transport"><button class="play" id="lplay">Replay</button><span class="clock" id="lclock" style="flex:1;text-align:left">Press Start</span></div>
+  </div>
+  <div>
+   <div class="card"><h2>Does the dance match the music?</h2>
+     <p class="muted small" style="margin-top:0">This is the control from the real perception study. Half the clips have the music they were choreographed to. In the other half the music has been swapped for another song, while the dancing stays identical. Can you tell? The dancer is a different body each time.</p>
+     <div id="lbody"></div>
+     <div class="ans" id="ans" hidden><button data-a="1">It matches</button><button data-a="0">It does not</button></div>
+     <div class="row"><button class="btn primary" id="lstart">Start</button></div>
+     <div id="lmsg" class="coach" style="display:none"></div>
+   </div>
+   <div class="card"><h3>Your results</h3><div id="lres" class="small muted">Five rounds. Score 4 or more to complete the mission.</div></div>
+  </div>
+ </div>
+</section>
+
+<!-- ================================================= LEARN -->
+<section class="tab" id="tab-learn" role="tabpanel">
+ <div class="learn">
+  <h1>Does a robot need a human body to dance like a human?</h1>
+  <p class="muted">An AI can already turn music into a human dance. A robot is not human: it has fewer joints, narrower ranges and slower motors. The step that converts a human motion into a robot motion is called <b style="color:var(--ink)">retargeting</b>, and the mismatch it exposes is the <b style="color:var(--ink)">embodiment gap</b>. This lab lets you poke at that gap, and the study around it is how we would measure it with people.</p>
+
+  <div class="card"><h2>The pipeline, step by step</h2>
+   <div class="step"><div class="n">1</div><div><b>Listen.</b> Find the beats in the song.<div class="muted small">Tracked on the percussive part of the audio; on our three test songs it lands within about 25 ms of the true beat.</div></div></div>
+   <div class="step"><div class="n">2</div><div><b>Dance.</b> A model turns music into a human skeleton moving.<div class="muted small">In this lab a rule-based dancer stands in for a real AI model (EDGE). It is beat-locked by construction, so it flatters the music side. The prompt you type decides its moves.</div></div></div>
+   <div class="step"><div class="n">3</div><div><b>Retarget.</b> Hand the same motion to a robot body and let its limits act.<div class="muted small">Missing joints are frozen, ranges clamp the angle, motors can only turn so fast. <button class="btn" data-demo="clip" style="padding:3px 10px;margin-left:6px">Show me a clipped shoulder</button></div></div></div>
+   <div class="step"><div class="n">4</div><div><b>Measure.</b> Fidelity, beat lock, balance.<div class="muted small">Each is one honest number with a known blind spot (see the glossary).</div></div></div>
+   <div class="step"><div class="n">5</div><div><b>Ask people.</b> The real answer is whether it still looks like dancing.<div class="muted small">Viewers rate matched and swapped-music clips of each body. <button class="btn" data-demo="listen" style="padding:3px 10px;margin-left:6px">Try the swapped-music control</button></div></div></div>
+  </div>
+
+  <div class="card"><h2>What the analysis found so far</h2>
+   <p class="muted small" style="margin-top:0">Across 15 dances (3 songs × 5 random choreographies) from the stand-in dancer. Treat as a demonstration of the method.</p>
+   <table id="pooltbl"></table>
+   <ul>
+    <li><b>The full humanoid fails in two places.</b> Overhead arms exceed its shoulder-raise range, and sideways steps exceed hip and ankle roll. <button class="btn" data-demo="step" style="padding:3px 10px">Show me</button></li>
+    <li><b>A cheaper body loses a lot more</b>, especially anything with a torso twist or deep squat.</li>
+    <li><b>Slow motors quietly wreck fast music.</b> Below about 6 rad/s the beat is lost. <button class="btn" data-demo="speed" style="padding:3px 10px">Show me</button></li>
+    <li><b>The arm keeps the wrist but little else</b>, and cannot fold its hand near its own base. <button class="btn" data-demo="dead" style="padding:3px 10px">Show me</button></li>
+    <li><b>More joints are not automatically better.</b> A well-chosen 12-point body beats the all-joints build on the audition. <button class="btn" data-demo="work" style="padding:3px 10px">Try the Workshop</button></li>
+   </ul>
+  </div>
+
+
+  <div class="card"><h2>Salsa, cumbia, bachata, and what “learning” means here</h2>
+   <p class="muted" style="margin-top:0">Each style has its own music and its own footwork. Salsa steps forward and back on 1-2-3 and 5-6-7, holding on 4 and 8. Bachata takes three steps to the side and taps on 4. Cumbia drags the foot in a small side-and-close step. The lab can count each one for you.</p>
+   <ul>
+    <li><b>The robot learns by trial and error.</b> In the Dance school it adjusts four numbers (step length, foot lift, hip movement, arm height), runs the dance through its body’s real limits, and keeps what scores better. That is simple hill-climbing. Real robot learning uses far richer methods, but the idea is the same: practise, score, adapt.</li>
+    <li><b>What it finds is specific.</b> A robot with slow motors learns to take shorter, lower steps so each one lands on the beat, giving up a little accuracy to gain a lot of timing. <button class="btn" data-demo="school" style="padding:3px 10px">Show me</button></li>
+    <li><b>Sometimes there is nothing to learn.</b> With fast motors these basic steps are already easy, and cumbia needs no adaptation at all. In our tests joint count barely mattered for these steps; motor speed did. Learning cannot add a joint the body does not have: the robot arm cannot learn footwork.</li>
+    <li><b>Be careful with the dances themselves.</b> I wrote simplified versions of the basic steps and synthesized the music; they have not been reviewed by dancers or dance teachers, and styles such as cumbia differ a lot by region (Colombian, Peruvian chicha, Mexican and others). Treat them as a teaching sketch, and have people who dance these styles correct them.</li>
+   </ul></div>
+
+  <div class="card"><h2>Glossary: what each score means and misses</h2><dl>
+   <dt>Visible fidelity</dt><dd>How close the head, hands and feet stay to where the human put them, compared with how far the human moved them from standing. It misses subtle style and timing.</dd>
+   <dt>Beat lock</dt><dd>Share of the music’s beats where the movement slows to a stop-point within a tenth of a second. A simplified cousin of the published beat-alignment score. It rewards simple motion: a robot that does less can look more on-beat, which is one reason people, not scores, must judge.</dd>
+   <dt>Balance check</dt><dd>Does the body’s centre of mass stay over its feet, as if it were frozen mid-move? Real dancers (and good controllers) fall outside this on purpose and recover, so a fail means “needs an active balance controller”, not “falls over”.</dd>
+   <dt>Step timing</dt><dd>How close each of the robot’s footfalls lands to when the teacher’s lands. Slow motors make steps land late. Cumbia’s dragged steps have no clear footfall, so it is judged on accuracy and balance only.</dd>
+   <dt>Limit hit</dt><dd>A frame where a joint had to stop short, or a joint the body does not have was asked to move more than about 6°.</dd>
+   <dt>Degrees of freedom (DoF)</dt><dd>The independent ways a joint can move. A hip has three, a knee one.</dd>
+  </dl></div>
+
+  <div class="card"><h2>Be careful what you quote</h2><ul class="muted">
+   <li>The dancer is a stand-in, not a trained AI model. Joint ranges are approximations inspired by the Unitree G1, not read from its model file.</li>
+   <li>Everything here is kinematic: no physics, no falling. Real robots also need balance control that this lab does not simulate.</li>
+   <li>The scores, missions and the “best build” are computed from this model, not from experiments on real robots or people. The human rating study is built but has not been run.</li>
+   <li>Your prompt is read by a small keyword matcher, not a language model. It tells you what it understood and what it did not.</li></ul></div>
+  <div class="legendrow"><span><em style="background:var(--human)"></em>AI human</span><span><em style="background:var(--humanoid)"></em>Full humanoid</span><span><em style="background:var(--reduced)"></em>Reduced humanoid</span><span><em style="background:var(--arm)"></em>Robot arm</span><span><em style="background:var(--custom)"></em>Your robot</span><span><em style="background:var(--gap)"></em>Could not follow</span></div>
+ </div>
+</section>
+<div class="toast" id="toast" role="status"></div>
+
+<script>__ENGINE__</script>
+<script>
+const DATA = __DATA__;
+__APP__
+</script>
+</body></html>
